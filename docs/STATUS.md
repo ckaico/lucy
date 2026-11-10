@@ -11,14 +11,15 @@ Version 0.1. Local only, macOS only. Built and tested on one machine.
 - Versioned project records with expected-revision writes.
 - Snapshots into a local content-addressed store, with verify and restore.
 - Read-only repo baseline: built-in patterns, plus gitleaks and osv-scanner when installed.
+- Publish gate (`publish-check`, MCP `check_publish_ready`): working-notes language in files about to go public. Added after a design-explorations section shipped on a live page.
 - CLI and MCP server (stdio). MCP writes are off by default.
 
 ## Tested
 
-`tests/test_acceptance.py`, 18 tests on throwaway fixtures: three-source search, differing and
+`tests/test_acceptance.py`, 19 tests on throwaway fixtures: three-source search, differing and
 identical copies, placeholders, volume disconnect, empty synced folder, stale writes, missing handoff
 files, traversal and symlink escape, cross-project access, instructions inside documents, secret
-redaction, revocation, no network code, an MCP client round trip, snapshot restore.
+redaction, revocation, no network code, an MCP client round trip, snapshot restore, publish gate.
 
 Not covered by automated tests: a physically unplugged volume, and a live modern iCloud placeholder.
 

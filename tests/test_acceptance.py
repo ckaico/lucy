@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lucy import access, adapters, catalog, config, db, handoff, records, security, snapshot  # noqa: E402
+from lucy import access, adapters, catalog, config, db, handoff, publish, records, security, snapshot  # noqa: E402
 
 FAKE_UUID = "FAKE-RAID-UUID-0001"
 SECRET = "sk-" + "Zq9" * 12  # fake, built at runtime so no scanner flags this file
@@ -270,6 +270,28 @@ class Acceptance(Base):
         obj.write_text("bit rot")
         self.assertFalse(snapshot.verify(s["id"])["verified"])
         self.assertFalse(snapshot.restore(s["id"], self.tmp / "restored2")["restored"])
+
+    def test_14_publish_gate_catches_working_notes(self):
+        site = self.tmp / "site"
+        site.mkdir()
+        write(site / "index.html", '<h2>The mark</h2><p>Three directions. None is final.</p>\n'
+              '<input placeholder="https://…">\n<a href="#">Security contact: set up before launch</a>\n')
+        write(site / "styles.css", "input::placeholder { color: grey; }\n")
+        (site / "tests").mkdir()
+        write(site / "tests" / "a.test.js", "// TODO mock everything\n")
+        self.cfg["repos"]["site"] = {"path": str(site)}
+        out = publish.check(self.cfg, self.con, "site")
+        self.assertEqual(out["verdict"], "hold")
+        rules = {(h["rule"], h["path"]) for h in out["hits"]}
+        self.assertIn(("exploration", "index.html"), rules, "'None is final' must be caught")
+        self.assertIn(("internal-note", "index.html"), rules, "'before launch' must be caught")
+        self.assertNotIn("styles.css", {h["path"] for h in out["hits"]}, "CSS ::placeholder is not copy")
+        self.assertFalse(any(h["match"].lower() == "placeholder" for h in out["hits"]), "HTML placeholder attribute is not copy")
+        self.assertNotIn("tests/a.test.js", {h["path"] for h in out["hits"]}, "tests are never published")
+        write(site / "index.html", "<h1>Reverse engineer everything.</h1>\n")
+        self.assertEqual(publish.check(self.cfg, self.con, "site")["verdict"], "no-hits")
+        with self.assertRaises(PermissionError):
+            publish.check(self.cfg, self.con, "not-approved")
 
 
 if __name__ == "__main__":

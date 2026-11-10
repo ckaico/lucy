@@ -48,6 +48,7 @@ lives on another Mac; Lucy reports it as remote instead of missing.
 | Save a decision | `bin/lucy note film launch-date "Ship Friday" --kind decision --expected-rev 0` |
 | Copy a folder somewhere safe | `bin/lucy snapshot film-icloud`, then `snapshot-verify` and `restore <id> <new folder>` |
 | Check repos | `bin/lucy repo-add name path`, `bin/lucy repo-audit`, `bin/lucy findings` |
+| Is this safe to make public? | `bin/lucy publish-check <repo>` flags explorations, drafts, TODOs, "before launch", local paths, AI attribution. `hold` means read every hit first. |
 
 ## Claude Code
 

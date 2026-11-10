@@ -4,7 +4,7 @@ import json
 import os
 import sys
 
-from . import access, catalog, config, db, handoff, records, security, service, snapshot
+from . import access, catalog, config, db, handoff, publish, records, security, service, snapshot
 from .redact import log
 
 
@@ -57,6 +57,8 @@ def build():
     s = cmd("repo-add"); s.add_argument("name"); s.add_argument("path")
     cmd("repo-audit").add_argument("names", nargs="*")
     cmd("findings").add_argument("--repo")
+    pc = cmd("publish-check", help="flag working-notes language in files about to go public")
+    pc.add_argument("names", nargs="*"); pc.add_argument("--include-docs", action="store_true")
     cmd("mcp", help="run the MCP server on stdio")
     return p
 
@@ -115,6 +117,8 @@ def run(a):
         return [security.audit(cfg, con, n) for n in (a.names or cfg["repos"])]
     if c == "findings":
         return security.findings(cfg, con, a.repo)
+    if c == "publish-check":
+        return [publish.check(cfg, con, n, a.include_docs) for n in (a.names or cfg["repos"])]
 
 
 def main(argv=None):

@@ -1,7 +1,7 @@
 [project]
 name = "lucy"
 version = "0.1.0"
-description = "Private project-memory, storage and security bridge"
+description = "Give your AI the file, not the drive. One local index of Dropbox, iCloud Drive and attached drives, with a deny-by-default MCP gate."
 license = "Apache-2.0"
 authors = [{ name = "Christian Kai (CKAI)" }]
 requires-python = ">=3.11"

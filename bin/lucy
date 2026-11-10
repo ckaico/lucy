@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs Lucy from its own virtualenv, wherever it is called from.
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PYTHONPATH="$DIR" exec "$DIR/.venv/bin/python" -m lucy "$@"

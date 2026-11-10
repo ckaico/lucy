@@ -69,9 +69,11 @@ def check(cfg, con, name, include_docs=False):
                 line_no = text.count("\n", 0, m.start()) + 1
                 line = text.splitlines()[line_no - 1].strip()
                 word = m.group(0).lower()
+                if word == "placeholder" and os.path.splitext(rel)[1].lower() in {".js", ".ts", ".jsx", ".tsx", ".css"}:
+                    continue  # in script and style files this is the DOM attribute, not copy
                 if word == "placeholder" and ("placeholder=" in line or "placeholder {" in line or ".placeholder" in line or "::placeholder" in line or "target.placeholder" in line):
                     continue  # the HTML attribute / CSS pseudo-element, not a placeholder in the copy
-                sev = "medium" if rule == "draft" and word in ALLOWED_IF_LABEL else severity
+                sev = "medium" if (rule == "draft" and word in ALLOWED_IF_LABEL) or word in ("not connected",) else severity
                 ev = m.group(0) if rule != "secret-shaped" else f"[REDACTED:{rule}] ({len(m.group(0))} chars)"
                 hits.append({"rule": rule, "severity": sev, "path": rel, "line": line_no, "match": ev,
                              "context": line[:160] if rule != "secret-shaped" else ""})

@@ -70,11 +70,11 @@ File status words used in handoff checks: `present`, `changed`, `intentionally_e
 
 ## Encryption and data handling
 
-Stated plainly, since the spec asked for no overclaiming:
+Stated plainly:
 
 - `~/.lucy` is **plaintext** on the Mac's internal disk. The catalog holds paths, sizes and
   hashes. Snapshots hold full file copies. Records and handoffs hold your text.
-- That disk has FileVault on, which protects a powered-off, stolen Mac. It does not protect
+- FileVault, if it is on, protects a powered-off, stolen Mac. It does not protect
   against anyone or anything running as your user. This is **not** end-to-end encryption.
 - Lucy sends nothing off the machine. When an assistant calls a Lucy tool, the result goes to
   that assistant's model service like any other tool output. That is the one outbound path,

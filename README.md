@@ -5,6 +5,10 @@
 <p align="center"><b>Give your AI the file. Not the drive.</b><br>
 <a href="https://lucy.so">lucy.so</a> · Apache 2.0 · local only · no account, no API key</p>
 
+<p align="center"><img src="docs/lucy-flow.gif" width="760" alt="Dropbox, iCloud Drive, a Mac Studio and a RAID feed files through pipes into Lucy, which stops threats at the gate and passes clean files to your AI tool. Google Drive and a laptop are shown as coming next."></p>
+
+<p align="center"><sub>Blue is your files. Red is what Lucy stops at the gate: hidden instructions, leaked keys and attempts to reach outside an approved folder. Google Drive and the laptop are not built yet.</sub></p>
+
 Your work lives in Dropbox, iCloud Drive and on a drive under the desk. Your AI tools get wired
 into all of it, with full access, and none of them can tell you which copy of a file is the current one.
 

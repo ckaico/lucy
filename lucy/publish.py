@@ -1,6 +1,6 @@
 """Publish gate: finds working-notes language in files that are about to go public.
 
-This is what let an "Explorations · None is final" design section ship on a live launch page.
+Example of what it is for: a section of design options left on a page that went live.
 Pattern matching cannot know intent, so every hit is a question for the owner, not a verdict,
 and a clean result is not approval. Reads working files only, from approved repos."""
 import os
@@ -24,7 +24,7 @@ RULES = [
     ("internal-note", "high", re.compile(r"\b(todo|fixme|hack|internal( only)?|do not (ship|publish)|remove (this|before)|before launch|pre-launch|not connected|backend not connected|mock(ed)?|stub(bed)?|fake)\b", re.I)),
     ("ai-attribution", "high", re.compile(r"(co-authored-by|generated (with|by)|built with (claude|chatgpt|gpt|copilot|cursor|ai)\b|🤖)", re.I)),
     ("handoff-voice", "medium", re.compile(r"\b(live on this page|on this page we|we('re| are) (still|not yet)|needs? (his|her|their|your) (⭐|pick|decision)|for review|review copy)\b", re.I)),
-    ("real-name-or-path", "medium", re.compile(r"(/Users/[a-z0-9_.-]+/|~/Projects/|Dropbox/00_COMMAND_CENTER|C:\\Users\\)", re.I)),
+    ("real-name-or-path", "medium", re.compile(r"(/Users/[a-z0-9_.-]+/|~/Projects/|~/Dropbox/|C:\\Users\\)", re.I)),
     ("secret-shaped", "high", re.compile(r"\b(sk-[A-Za-z0-9]{16,}|re_[A-Za-z0-9]{16,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})", 0)),
 ]
 # Words that are product copy when they appear as a visible label; keep them but mark them so the owner looks.

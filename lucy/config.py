@@ -12,6 +12,7 @@ DEFAULTS = {
     "mcp_writes": False,
     "max_excerpt_bytes": 8000,
     "max_hash_bytes": 256 * 1024 * 1024,
+    "auto_scan_minutes": 60,  # the MCP server rescans sources older than this in the background; 0 turns it off
 }
 
 

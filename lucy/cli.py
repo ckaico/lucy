@@ -4,7 +4,7 @@ import json
 import os
 import sys
 
-from . import access, catalog, config, db, handoff, publish, records, security, service, snapshot
+from . import access, catalog, config, content, db, handoff, publish, records, security, service, snapshot
 from .redact import log
 
 
@@ -29,6 +29,7 @@ def build():
     cmd("scan", help="refresh the catalog").add_argument("ids", nargs="*")
     cmd("projects")
     s = cmd("search"); s.add_argument("query"); s.add_argument("--project")
+    s = cmd("search-text", help="find files by what they say"); s.add_argument("query"); s.add_argument("--project")
     s = cmd("versions", help="every copy of one file, grouped by content"); s.add_argument("project"); s.add_argument("name")
     s = cmd("conflicts"); s.add_argument("--project"); s.add_argument("--by-name", action="store_true")
     cmd("duplicates").add_argument("--project")
@@ -78,6 +79,8 @@ def run(a):
         return [{"project": p, "sources": list(config.project_sources(cfg, p))} for p in config.projects(cfg)]
     if c == "search":
         return catalog.search(cfg, con, a.query, a.project)
+    if c == "search-text":
+        return content.search(cfg, con, a.query, a.project)
     if c == "versions":
         return catalog.versions(cfg, con, a.project, a.name)
     if c == "conflicts":

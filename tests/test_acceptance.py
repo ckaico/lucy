@@ -293,6 +293,36 @@ class Acceptance(Base):
         with self.assertRaises(PermissionError):
             publish.check(self.cfg, self.con, "not-approved")
 
+    def test_15_search_text_finds_files_by_content(self):
+        from lucy import content
+        write(self.dbx / "notes/edit.md", f"The cold open needs a slower cut.\napi_key = {SECRET}\n")
+        self.scan()
+        hits = content.search(self.cfg, self.con, "cutting the cold opens", "alpha")
+        self.assertEqual(hits[0]["path"], "notes/edit.md", "stemming: cutting/opens match cut/open")
+        self.assertNotIn(SECRET, json.dumps(hits), "excerpts are redacted")
+        self.assertEqual(content.search(self.cfg, self.con, "cold open", "beta"), [], "project scope holds")
+        self.assertEqual(content.search(self.cfg, self.con, "the plan", "alpha")[0]["path"], "plan.md")
+        self.assertEqual(content.search(self.cfg, self.con, '"; drop table ("', "alpha"), [], "query syntax is inert")
+        (self.dbx / "notes/edit.md").unlink()
+        self.scan()
+        self.assertEqual(content.search(self.cfg, self.con, "cold open", "alpha"), [], "gone files leave the index")
+        write(self.icl / "seen.md", "zebra stripes\n")
+        self.scan()
+        self.assertTrue(content.search(self.cfg, self.con, "zebra", "alpha"))
+        catalog.revoke(self.cfg, self.con, "icl")
+        self.assertEqual(content.search(self.cfg, self.con, "zebra", "alpha"), [], "revoke removes indexed text")
+
+    def test_16_placeholder_text_is_never_indexed(self):
+        from lucy import content
+        self.assertEqual(content.search(self.cfg, self.con, "stub"), [])
+
+    def test_17_autoscan_picks_only_stale_sources(self):
+        from lucy import mcp_server
+        self.assertEqual(mcp_server._stale(self.cfg, self.con, 60), [], "just scanned")
+        self.con.execute("update source_state set last_scan_at='2000-01-01T00:00:00+00:00' where source_id='raid'")
+        self.con.commit()
+        self.assertEqual(mcp_server._stale(self.cfg, self.con, 60), ["raid"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

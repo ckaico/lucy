@@ -1,8 +1,9 @@
 """The shared catalog: which copy is where, can it be read, and do copies match."""
 import hashlib
 import os
+from datetime import datetime, timezone
 
-from . import adapters, config
+from . import adapters, config, content
 from .redact import log, now
 
 
@@ -41,10 +42,10 @@ def scan(cfg, con, sid):
         _set_state(con, sid, "suspect_empty", detail)
         return {"source": sid, "status": "suspect_empty", "detail": detail, "last_known_copies_retained": known}
 
-    t = now()
+    t = datetime.now(timezone.utc).isoformat(timespec="microseconds")  # two scans in one second must not collide
     limit = src.get("max_hash_bytes", cfg["max_hash_bytes"])
     counts = {"readable": 0, "placeholder": 0, "placeholder_dir": 0, "symlink": 0, "denied": 0, "unreadable": 0}
-    hashed = 0
+    hashed = indexed = 0
     for rel, path, size, mtime, avail in entries:
         row = con.execute("select * from copies where source_id=? and relpath=?", (sid, rel)).fetchone()
         sha, note = None, None
@@ -63,6 +64,8 @@ def scan(cfg, con, sid):
                     avail, note = "unreadable", e.strerror
         elif avail.startswith("placeholder"):
             note = "content not on this Mac; not read"
+        if sha and avail == "readable" and content.indexable(rel, size) and content.update(con, sid, rel, path, sha):
+            indexed += 1
         counts[avail] = counts.get(avail, 0) + 1
         con.execute(
             "insert into copies(source_id,relpath,name,size,mtime,availability,sha256,note,first_seen_at,last_seen_at,gone)"
@@ -73,9 +76,10 @@ def scan(cfg, con, sid):
         if sha and (row is None or row["sha256"] != sha):
             con.execute("insert into copy_history values(?,?,?,?,?,?)", (sid, rel, sha, size, mtime, t))
     gone = con.execute("update copies set gone=1 where source_id=? and gone=0 and last_seen_at<>?", (sid, t)).rowcount
+    content.drop(con, sid, only_gone=True)
     _set_state(con, sid, "available", git_note(src["root"]), files=len(entries), available=True)
-    log("scan", source=sid, status="available", files=len(entries), hashed=hashed, gone=gone)
-    return {"source": sid, "status": "available", "files": len(entries), "hashed_now": hashed,
+    log("scan", source=sid, status="available", files=len(entries), hashed=hashed, indexed=indexed, gone=gone)
+    return {"source": sid, "status": "available", "files": len(entries), "hashed_now": hashed, "text_indexed_now": indexed,
             "no_longer_present": gone, "by_availability": {k: v for k, v in counts.items() if v}}
 
 
@@ -221,6 +225,7 @@ def revoke(cfg, con, sid):
     n = con.execute("delete from copies where source_id=?", (sid,)).rowcount
     con.execute("delete from copy_history where source_id=?", (sid,))
     con.execute("delete from source_state where source_id=?", (sid,))
+    content.drop(con, sid)
     con.commit()
     snaps = [p.name for p in (config.home() / "snapshots").glob(f"{sid}-*.json")]
     log("revoke", source=sid, catalog_rows_deleted=n)

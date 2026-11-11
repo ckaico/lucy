@@ -28,11 +28,15 @@ create table if not exists findings(
 create table if not exists scans(
   id integer primary key, repo text, revision text, scanner text,
   status text, detail text, created_at text);
+create table if not exists content_meta(
+  id integer primary key, source_id text, relpath text, sha256 text, unique(source_id, relpath));
+create virtual table if not exists content_fts using fts5(path, body, tokenize='porter unicode61');
 """
 
 
 def connect():
     con = sqlite3.connect(config.home() / "catalog.db", timeout=30)
     con.row_factory = sqlite3.Row
+    con.execute("pragma journal_mode=wal")
     con.executescript(SCHEMA)
     return con
